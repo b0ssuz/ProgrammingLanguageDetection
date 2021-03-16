@@ -6,7 +6,7 @@ Build samples
 make
 ```
 
-Rund Test
+Run test
 
 ```bash
 make run
