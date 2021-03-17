@@ -9,5 +9,5 @@ make
 Run test
 
 ```bash
-make run
+make test
 ```
