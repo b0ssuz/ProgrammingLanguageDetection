@@ -8,9 +8,7 @@ def test_detect_language()->None:
 
 def test_strings():
     assert len(strings("samples/go", 4)[0]) >= 4
-    assert len(strings("samples/go", 4,6)[0]) in [4,5,6]
-    assert len(strings("samples/go", 5,5)[0]) == 5
-
+    assert len(strings("samples/go", 4,10)[0]) in list(range(4,10))
 
 if __name__=="__main__":
     sys.exit(main)
