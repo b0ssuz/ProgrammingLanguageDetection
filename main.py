@@ -1,6 +1,7 @@
 import sys
 import string
 from subprocess import call
+import matplotlib.pyplot as plt
 
 EXIT_SUCCESS: int = 0
 EXIT_FAILURE: int = 1
@@ -32,14 +33,13 @@ def detect_language(binary_file: bytes)->str:
         call(["strip", binary_file])
 
     patterns = {
-            "c": [["printf", "libc.so"], 0],
-            "rust": [["rustc"], 0],
-            "c++": [["libstdc++.so"], 0],
-            "go": [["fmt.Println", "malloc.go"], 0]
+            "c": [["printf","libc.so"], 0],
+            "rust": [["rustc","rust",".rs"], 0],
+            "c++": [["libstdc++.so","libgcc_s.so"], 0],
+            "go": [["fmt.Println", "malloc.go","fmt"], 0]
             }
 
     string_list = strings(binary_file,1)
-
 
     pattern_found = False
 
@@ -57,6 +57,11 @@ def detect_language(binary_file: bytes)->str:
     for key in patterns:
         if patterns[key][1] >= max_count:
             max_count, max_key = patterns[key][1], key
+
+    ### start plotting
+    plt.bar([key for key in patterns],[patterns[key][1] for key in patterns])
+    plt.show()
+    #### end plotting
 
     if pattern_found:
         return max_key
