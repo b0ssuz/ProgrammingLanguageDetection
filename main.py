@@ -2,23 +2,42 @@ import sys
 import string
 from subprocess import call
 import matplotlib.pyplot as plt
+import re
+from pathlib import Path
 
 EXIT_SUCCESS: int = 0
 EXIT_FAILURE: int = 1
-DEBUG: bool = True
+DEBUG: bool = False
+STRIP: bool = False
+SHOW_GRAPH: bool = False
 
 
 def main()->int:
-    lang_guess = detect_language("samples/rust")
-    print(f"samples/rust: {lang_guess}")
-    lang_guess = detect_language("samples/c")
-    print(f"samples/c: {lang_guess}")
-    lang_guess = detect_language("samples/cpp")
-    print(f"samples/cpp: {lang_guess}")
-    lang_guess = detect_language("samples/go")
-    print(f"samples/go: {lang_guess}")
+
+    stats = {
+                "C": 0,
+                "C++": 0,
+                "RUST": 0,
+                "GO": 0,
+                "OTHER/FAIL": 0
+            }
+
+    paths = Path("/usr/bin/").glob('*')
+
+    for path in paths:
+        try:
+            stats[testing(path)] += 1
+        except:
+            print("TEST FAILED")
+
+    debug("\n\n\nFINISHED !!!!")
+    debug(stats)
 
     return EXIT_SUCCESS
+
+def testing(path: str)->str:
+    print(f"{path} {detect_language(path)}")
+    return detect_language(path)
 
 def debug(msg: str)->None:
     '''Function for debug messages'''
@@ -29,17 +48,18 @@ def debug(msg: str)->None:
 def detect_language(binary_file: bytes)->str:
     ''' Guesses programming language of given binary'''
 
-    if DEBUG:
+    if STRIP:
         call(["strip", binary_file])
 
     patterns = {
-            "c": [["printf","libc.so"], 0],
-            "rust": [["rustc","rust",".rs"], 0],
-            "c++": [["libstdc++.so","libgcc_s.so"], 0],
-            "go": [["fmt.Println", "malloc.go","fmt"], 0]
+            "C": [["printf"], 0],
+            "RUST": [["rustc","rust",".rs"], 0],
+            "C++": [["libstdc++.so",r"libgcc_s.so"], 0],
+            "GO": [["fmt.Println", "malloc.go","fmt."], 0]
             }
 
     string_list = strings(binary_file,1)
+    debug(string_list)
 
     pattern_found = False
 
@@ -47,7 +67,10 @@ def detect_language(binary_file: bytes)->str:
         for key in patterns:
             for index in range(len(patterns[key][0])):
                 if patterns[key][0][index] in c:
-                    patterns[key][1] +=1
+                    if patterns[key][0][index] == "libstdc++.so":
+                        patterns[key][1] += 10
+                        continue
+                    patterns[key][1] += 1
                     pattern_found = True
 
     debug(patterns)
@@ -58,10 +81,10 @@ def detect_language(binary_file: bytes)->str:
         if patterns[key][1] >= max_count:
             max_count, max_key = patterns[key][1], key
 
-    ### start plotting
-    plt.bar([key for key in patterns],[patterns[key][1] for key in patterns])
-    plt.show()
-    #### end plotting
+    if SHOW_GRAPH:
+        plt.title(f"I THINK {binary_file} IS WRITTEN IN {max_key}")
+        plt.bar([key for key in patterns],[patterns[key][1] for key in patterns])
+        plt.show()
 
     if pattern_found:
         return max_key
