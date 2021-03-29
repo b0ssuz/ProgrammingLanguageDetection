@@ -19,16 +19,14 @@ def main()->int:
                 "C++": 0,
                 "RUST": 0,
                 "GO": 0,
-                "OTHER/FAIL": 0
+                "COULD NOT DETECT PROGRAMMING LANGUAGE": 0,
+                "NOT ELF": 0
             }
 
-    paths = Path("/usr/bin/").glob('*')
+    paths = Path("samples/").glob('*')
 
     for path in paths:
-        try:
-            stats[testing(path)] += 1
-        except:
-            print("TEST FAILED")
+        stats[testing(path)] += 1
 
     debug("\n\n\nFINISHED !!!!")
     debug(stats)
@@ -44,9 +42,19 @@ def debug(msg: str)->None:
     if DEBUG == True:
         print(f"DEBUG: {msg}")
 
+def is_elf_file(file: str)->bool:
+    '''Checks if a given file is an elf file'''
+    with open(file, mode="rb") as f:
+        return f.read(4).decode("UTF-8") == '\x7fELF'
+
+
 
 def detect_language(binary_file: bytes)->str:
     ''' Guesses programming language of given binary'''
+
+    if not is_elf_file(binary_file):
+        print(f"{binary_file} is not an ELF file")
+        return "NOT ELF"
 
     if STRIP:
         call(["strip", binary_file])
