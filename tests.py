@@ -1,10 +1,11 @@
 from main import *
 
 def test_detect_language()->None:
-    assert detect_language("samples/rust") == "rust"
-    assert detect_language("samples/c") == "c"
-    assert detect_language("samples/cpp") == "c++"
-    assert detect_language("samples/go") == "go"
+    assert detect_language("samples/rust") == "RUST"
+    assert detect_language("samples/c") == "C"
+    assert detect_language("samples/cpp") == "C++"
+    assert detect_language("samples/go") == "GO"
+    assert detect_language("samples/sample.c") == "NOT ELF"
 
 def test_strings():
     assert len(strings("samples/go", 4)[0]) >= 4
